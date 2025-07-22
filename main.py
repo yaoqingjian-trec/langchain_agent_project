@@ -51,4 +51,8 @@ response = agent_executor.invoke({
 })
 
 print("\n--- 最终答案 ---")
+<<<<<<< HEAD
 print(response["output"])
+=======
+print(response["output"])
+>>>>>>> d7531dfec609941de283ff4435a2a18cf2ada245
