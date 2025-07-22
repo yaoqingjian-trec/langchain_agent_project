@@ -80,6 +80,16 @@ uv run run-agent
 python -m agent_app.main
 ```
 
+
+## web服务版
+```
+#开发测试开发/测试 (单进程)：
+uvicorn src.agent_app.server:api --reload
+生产环境启动 (多进程)：
+gunicorn -w 4 -k uvicorn.workers.UvicornWorker src.agent_app.server:api
+```
+
+
 ## 开发常用命令 (使用 uv)
 - 同步依赖项（根据 pyproject.toml 增删依赖）：
     ```bash

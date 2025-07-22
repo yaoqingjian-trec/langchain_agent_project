@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LangGraph 智能体测试器</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 2em; line-height: 1.6; }
+        #question { width: 60%; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; }
+        #output { border: 1px solid #eee; background-color: #f9f9f9; padding: 1em; margin-top: 1em; min-height: 200px; white-space: pre-wrap; word-wrap: break-word; border-radius: 5px; }
+        .step { margin-bottom: 1em; padding-bottom: 1em; border-bottom: 1px dashed #ddd; }
+        .node { font-weight: bold; color: #007bff; display: block; margin-bottom: 5px; }
+        .content { color: #333; }
+        .tool-input { font-style: italic; color: #888; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>LangGraph 智能体测试器</h1>
+    <input type="text" id="question" placeholder="在这里输入您的问题..." value="最近关于火星探索有什么新发现？">
+    <button onclick="streamAgent()">发送流式请求</button>
+    
+    <h2>实时思考过程：</h2>
+    <div id="output">等待请求...</div>
+
+    <script>
+        let eventSource = null;
+
+        function streamAgent() {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            const questionInput = document.getElementById('question');
+            const outputDiv = document.getElementById('output');
+            const question = questionInput.value;
+
+            if (!question) {
+                alert('请输入一个问题！');
+                return;
+            }
+
+            outputDiv.innerHTML = '<div class="step"><span class="node">[客户端]</span> <span class="content">正在连接服务器...</span></div>';
+            
+            eventSource = new EventSource(`http://127.0.0.1:8000/stream?question=${encodeURIComponent(question)}`);
+
+            let currentLLMResponseElement = null;
+
+            eventSource.addEventListener('agent_step', function(event) {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'tool_start') {
+                    currentLLMResponseElement = null; // 重置LLM输出元素
+                    outputDiv.innerHTML += `<div class="step"><span class="node">[${data.node}]</span> <span class="content">正在使用工具搜索...</span><br><span class="tool-input">查询: ${data.input}</span></div>`;
+                } else if (data.type === 'tool_end') {
+                    currentLLMResponseElement = null;
+                    outputDiv.innerHTML += `<div class="step"><span class="node">[${data.node}]</span> <span class="content">工具执行完成。</span></div>`;
+                } else if (data.type === 'llm_chunk') {
+                    if (!currentLLMResponseElement || currentLLMResponseElement.dataset.node !== data.node) {
+                        // 如果是新的LLM响应流，创建一个新的div来存放
+                        const stepDiv = document.createElement('div');
+                        stepDiv.className = 'step';
+                        
+                        const nodeSpan = document.createElement('span');
+                        nodeSpan.className = 'node';
+                        nodeSpan.textContent = `[${data.node}]`;
+                        
+                        currentLLMResponseElement = document.createElement('span');
+                        currentLLMResponseElement.className = 'content';
+                        currentLLMResponseElement.dataset.node = data.node; // 标记属于哪个节点
+                        
+                        stepDiv.appendChild(nodeSpan);
+                        stepDiv.appendChild(currentLLMResponseElement);
+                        outputDiv.appendChild(stepDiv);
+                    }
+                    // 将新的文本块追加到当前元素中，实现打字机效果
+                    currentLLMResponseElement.textContent += data.content;
+                }
+                
+                outputDiv.scrollTop = outputDiv.scrollHeight;
+            });
+
+            eventSource.addEventListener('end', function(event) {
+                outputDiv.innerHTML += '<div class="step"><span class="node">[服务器]</span> <span class="content">流程结束。</span></div>';
+                eventSource.close();
+            });
+
+            eventSource.onerror = function(err) {
+                outputDiv.innerHTML += '<div class="step"><span class="node">[错误]</span> <span class="content">连接错误或已关闭。</span></div>';
+                console.error("EventSource failed:", err);
+                eventSource.close();
+            };
+        }
+    </script>
+</body>
+</html>

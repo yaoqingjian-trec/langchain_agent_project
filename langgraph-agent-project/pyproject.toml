@@ -6,20 +6,30 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "langgraph-agent-project"
-version = "0.1.0"
-description = "一个使用LangGraph构建的智能研究助理。"
+version = "1.0.0"
+description = "一个企业级的、支持高并发的AI智能研究助理"
 authors = [{ name = "Your Name", email = "you@example.com" }]
 requires-python = ">=3.10"
 dependencies = [
+    # 核心框架
     "langchain>=0.1.0",
     "langgraph>=0.0.30",
+    
+    # LLM & 工具集成
     "langchain-community>=0.0.20",
-    "langchain_openai>=0.1.0",
+    "langchain-litellm",
+    "litellm",
+    "langchain-tavily",
+
+    # Web服务
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "gunicorn>=22.0.0",
+    "sse-starlette>=2.0.0",  # <--- 确保这一行存在！
+
+    # 其他工具
     "python-dotenv>=1.0.0",
     "Pillow>=10.0.0",
-    "langchain-tavily",  # <--- 添加这一行
-    "litellm",
-    "langchain-litellm", # <--- 添加这一行
 ]
 
 [project.scripts]
