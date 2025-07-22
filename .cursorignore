@@ -1,0 +1,7 @@
+# 忽略所有 .env 文件
+.env
+.env.*
+
+# 但保留示例
+!.env.example
+# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
