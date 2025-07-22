@@ -1,0 +1,34 @@
+# langgraph-agent-project/pyproject.toml
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "langgraph-agent-project"
+version = "0.1.0"
+description = "一个使用LangGraph构建的智能研究助理。"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+requires-python = ">=3.10"
+dependencies = [
+    "langchain>=0.1.0",
+    "langgraph>=0.0.30",
+    "langchain-community>=0.0.20",
+    "langchain_openai>=0.1.0",
+    "python-dotenv>=1.0.0",
+    "Pillow>=10.0.0",
+    "langchain-tavily",  # <--- 添加这一行
+    "litellm",
+    "langchain-litellm", # <--- 添加这一行
+]
+
+[project.scripts]
+run-agent = "agent_app.main:main"
+
+[project.optional-dependencies]
+viz = ["pygraphviz>=1.12"]
+dev = ["pytest"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["agent_app"]
